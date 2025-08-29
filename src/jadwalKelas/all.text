@@ -1,0 +1,155 @@
+package jadwalKelas.model;
+
+import java.util.List;
+
+public class Dosen {
+    private String nip;
+    private String nama;
+    private String email;
+    private List<MataKuliah> MK; // Relasi ke MataKuliah
+
+    public Dosen(String nip, String nama, String email, List<MataKuliah> MK) {
+        this.nip = nip;
+        this.nama = nama;
+        this.email = email;
+        this.MK = MK;
+    }
+
+    // Getter & Setter
+    public String getNip() { return nip; }
+    public void setNip(String nip) { this.nip = nip; }
+
+    public String getNama() { return nama; }
+    public void setNama(String nama) { this.nama = nama; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    public List<MataKuliah> getMataKuliahDiampu() { return MK; }
+    public void setMataKuliahDiampu(List<MataKuliah> MK) { this.MK = MK; }
+}
+
+package jadwalKelas.model;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+public class Jadwal {
+    private Kelas kelas;
+    private String hari;
+    private LocalDateTime jamMulai;
+    private LocalDateTime jamSelesai;
+    private String ruangan;
+    private MataKuliah matkul;
+
+    public Jadwal(Kelas kelas, String hari, LocalDateTime jamMulai, LocalDateTime jamSelesai, String ruangan, MataKuliah matkul) {
+        this.kelas = kelas;
+        this.hari = hari;
+        this.jamMulai = jamMulai;
+        this.jamSelesai = jamSelesai;
+        this.ruangan = ruangan;
+        this.matkul = matkul;
+
+    }
+
+    // Getter & Setter
+    public Kelas getKelas() { return kelas; }
+    public void setKelas(Kelas kelas) { this.kelas = kelas; }
+
+    public String getHari() { return hari; }
+    public void setHari(String hari) { this.hari = hari; }
+
+    public LocalDateTime getJamMulai() { return jamMulai; }
+    public void setJamMulai(LocalDateTime jamMulai) { this.jamMulai = jamMulai; }
+
+    public LocalDateTime getJamSelesai() { return jamSelesai; }
+    public void setJamSelesai(LocalDateTime jamSelesai) { this.jamSelesai = jamSelesai; }
+
+    public String getRuangan() { return ruangan; }
+    public void setRuangan (String ruangan) { this.ruangan = ruangan; }
+
+    public MataKuliah getMatkul() { return matkul; }
+    public void setMatkul (MataKuliah matkul) { this.matkul = matkul; }
+}
+
+package jadwalKelas.model;
+
+import java.util.List;
+
+public class Kelas {
+    private String kodeKelas;
+    private Dosen dosenPengampu;
+    private MataKuliah mataKuliah;
+    private List<Mahasiswa> daftarMahasiswa;
+    private List<Jadwal> jadwal;
+
+    public Kelas(String kodeKelas, Dosen dosenPengampu, MataKuliah mataKuliah, List<Mahasiswa> mhs, List<Jadwal> jadwal) {
+        this.kodeKelas = kodeKelas;
+        this.dosenPengampu = dosenPengampu;
+        this.mataKuliah = mataKuliah;
+        this.daftarMahasiswa = mhs;
+        this.jadwal = jadwal;
+    }
+
+    // Getter & Setter
+    public String getKodeKelas() { return kodeKelas; }
+    public void setKodeKelas(String kodeKelas) { this.kodeKelas = kodeKelas; }
+
+    public Dosen getDosenPengampu() { return dosenPengampu; }
+    public void setDosenPengampu(Dosen dosenPengampu) { this.dosenPengampu = dosenPengampu; }
+
+    public MataKuliah getMataKuliah() { return mataKuliah; }
+    public void setMataKuliah(MataKuliah mataKuliah) { this.mataKuliah = mataKuliah; }
+
+    public List<Mahasiswa> getDaftarMahasiswa() { return daftarMahasiswa; }
+    public void setDaftarMahasiswa(List<Mahasiswa> daftarMahasiswa) { this.daftarMahasiswa = daftarMahasiswa; }
+}
+
+package jadwalKelas.model;
+
+public class Mahasiswa {
+    private String NIM;
+    private String name;
+    private Kelas kelas;
+
+    Mahasiswa(String NIM, String name , Kelas kelas){
+        this.NIM = NIM;
+        this.name = name;
+        this.kelas = kelas;
+    };
+
+    public void setName(String name){
+        this.name = name;
+    }
+
+    public String getNIM(){return NIM;}
+    public String getName(){return name;}
+    public Kelas getKelas(){return kelas;}
+}
+
+package jadwalKelas.model;
+
+import java.util.List;
+
+public class MataKuliah {
+    private String kodeMk;
+    private String namaMk;
+    private int sks;
+    private List<Dosen> pengampu;
+
+    public MataKuliah(String kodeMk, String namaMk, int sks, List<Dosen> pengampu) {
+        this.kodeMk = kodeMk;
+        this.namaMk = namaMk;
+        this.sks = sks;
+        this.pengampu = pengampu;
+    }
+
+    // Getter & Setter
+    public String getKodeMk() { return kodeMk; }
+    public String getNamaMk() { return namaMk; }
+    public int getSks() { return sks; }
+
+    public void setNamaMk(String namaMk) { this.namaMk = namaMk; }
+    public void setKodeMk(String kodeMk) { this.kodeMk = kodeMk; }
+    public void setSks(int sks) { this.sks = sks; }
+}
