@@ -1,6 +1,6 @@
-package jadwalKelas.app;
+package id.ac.polban.service;
 
-import jadwalKelas.model.*;
+import id.ac.polban.model.*;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;

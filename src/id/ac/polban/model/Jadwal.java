@@ -1,4 +1,4 @@
-package jadwalKelas.model;
+package id.ac.polban.model;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;

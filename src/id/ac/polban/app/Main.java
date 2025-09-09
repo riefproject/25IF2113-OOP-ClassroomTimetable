@@ -1,6 +1,9 @@
-package jadwalKelas.app;
+package id.ac.polban.app;
 
-import jadwalKelas.model.*;
+import id.ac.polban.model.Dosen;
+import id.ac.polban.model.Kelas;
+import id.ac.polban.service.DataSeeder;
+import id.ac.polban.service.JadwalSearch;
 
 import java.time.format.DateTimeFormatter;
 import java.util.Scanner;

@@ -1,4 +1,4 @@
-package jadwalKelas.model;
+package id.ac.polban.model;
 
 import java.util.ArrayList;
 import java.util.Collections;
