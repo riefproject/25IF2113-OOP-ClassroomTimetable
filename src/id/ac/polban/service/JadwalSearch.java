@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 public final class JadwalSearch {
     private JadwalSearch() {}
 
-    private static final DateTimeFormatter HM = DateTimeFormatter.ofPattern("HH:mm");
+    public static final DateTimeFormatter HM = DateTimeFormatter.ofPattern("HH:mm");
 
     public static void searchByKelas(DataSeeder.Seed seed, String kodeKelas, String hariArg) {
         Optional<Kelas> opt = seed.getKelas().stream()
@@ -86,7 +86,7 @@ public final class JadwalSearch {
         return null;
     }
 
-    private static String displayHariId(DayOfWeek d) {
+    public static String displayHariId(DayOfWeek d) {
         switch (d) {
             case MONDAY:    return "Senin";
             case TUESDAY:   return "Selasa";

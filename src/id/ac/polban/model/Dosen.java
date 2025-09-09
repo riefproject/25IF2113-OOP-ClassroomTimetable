@@ -6,20 +6,20 @@ import java.util.List;
 import java.util.Objects;
 
 public class Dosen {
-    private String nip;
+    private String kodeDosen;
     private String nama;
     private String email;
     private final List<MataKuliah> mataKuliahDiampu = new ArrayList<>();
 
-    public Dosen(String nip, String nama, String email) {
-        this.nip = Objects.requireNonNull(nip);
+    public Dosen(String kodeDosen, String nama, String email) {
+        this.kodeDosen = Objects.requireNonNull(kodeDosen);
         this.nama = Objects.requireNonNull(nama);
         this.email = Objects.requireNonNull(email);
     }
 
     // Getter & Setter (enkapsulasi)
-    public String getNip() {
-        return nip;
+    public String getKodeDosen() {
+        return kodeDosen;
     }
     public String getNama() {
         return nama;
@@ -28,8 +28,8 @@ public class Dosen {
         return email;
     }
 
-    public void setNip(String nip) {
-        this.nip = Objects.requireNonNull(nip);
+    public void setkodeDosen(String kodeDosen) {
+        this.kodeDosen = Objects.requireNonNull(kodeDosen);
     }
     public void setNama(String nama) {
         this.nama = Objects.requireNonNull(nama);

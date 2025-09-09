@@ -30,7 +30,7 @@ public final class DataSeeder {
         // Kelas
         Kelas D32A = new Kelas("D3-2A");
         Kelas D32B = new Kelas("D3-2B");
-        Kelas D32C = new Kelas("D3-2A");
+        Kelas D32C = new Kelas("D3-2C");
 
         // Mahasiswa
         Mahasiswa m1 = new Mahasiswa("2500001", "Arief Wijaya", null);
