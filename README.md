@@ -8,9 +8,11 @@ Aplikasi ini adalah sebuah Command-Line Interface (CLI) sederhana yang memungkin
 
 Aplikasi ini punya beberapa fitur utama:
 
-1.  **Cari Jadwal by Kelas**: Langsung lihat jadwal lengkap untuk kelas tertentu. Bisa juga difilter berdasarkan hari, jadi nggak perlu scroll panjang-panjang.
-2.  **Lihat Daftar Kelas**: Lupa kode kelasmu? Tenang, ada daftar semua kelas yang tersedia di sistem.
-3.  **Ringkasan Data**: Penasaran ada siapa aja dosennya atau apa aja mata kuliahnya? Fitur ini menampilkan ringkasan data dosen, kelas, beserta mahasiswanya.
+1.  **Siklus Hidup Entitas Draft-to-Aktif**: Entitas-entitas akademik (Kampus, Jurusan, Prodi, Kelas, Mahasiswa, Dosen, Mata Kuliah) kini memiliki status `isActive`. Mereka dimulai sebagai 'draft' (`isActive=false`) dan hanya bisa diaktifkan jika memenuhi kriteria validasi hierarkis yang ketat (misalnya, sebuah Kampus hanya aktif jika memiliki setidaknya satu Jurusan yang aktif, dan seterusnya). Ini mencerminkan alur kerja nyata di mana entitas harus memiliki ketergantungan yang valid untuk dianggap 'beroperasi'.
+2.  **Validasi Data Hierarkis Ketat**: Sistem sekarang menerapkan validasi yang sangat ketat saat memuat data. Entitas anak tidak akan dibuat atau ditambahkan jika induknya tidak ada atau tidak valid saat data dibaca dari CSV. Ini memastikan integritas data yang kuat dan mencerminkan bahwa "suatu instansi pendidikan tidak akan berdiri tanpa mahasiswa" dan sebaliknya.
+3.  **Cari Jadwal by Kelas**: Langsung lihat jadwal lengkap untuk kelas tertentu. Bisa juga difilter berdasarkan hari, jadi nggak perlu scroll panjang-panjang.
+4.  **Lihat Daftar Kelas**: Lupa kode kelasmu? Tenang, ada daftar semua kelas yang tersedia di sistem.
+5.  **Ringkasan Data**: Penasaran ada siapa aja dosennya atau apa aja mata kuliahnya? Fitur ini menampilkan ringkasan data dosen, kelas, beserta mahasiswanya.
 
 ## 🛠️ Teknologi yang Digunakan
 
@@ -24,13 +26,13 @@ Proyek ini dibangun dengan teknologi fundamental, fokus pada penerapan konsep OO
 
 -   `src/`: Berisi semua kode sumber Java, diorganisir dalam beberapa package:
     -   `app`: Titik masuk aplikasi (Main.java).
-    -   `model`: Kelas-kelas yang merepresentasikan data (Dosen, Mahasiswa, dll.).
+    -   `model`: Kelas-kelas yang merepresentasikan data (Dosen, Mahasiswa, Kampus, Jurusan, Prodi, dll.).
     -   `service`: Logika bisnis, seperti memuat data dari CSV dan fungsionalitas pencarian.
 -   `data/`: Kumpulan file `.csv` yang menjadi "database" untuk aplikasi ini.
 
 ## ⚠️ Catatan Mengenai Data
 
-Data yang digunakan dalam proyek ini (`dosen.csv`, `mahasiswa.csv`, `jadwal.csv`, `matakuliah.csv`) adalah **data riil perkuliahan di Polban**. Namun, untuk menjaga privasi, **semua identitas pribadi seperti nama dosen dan mahasiswa telah disamarkan**. Jadi, jangan heran kalau menemukan nama-nama yang unik atau lucu, ya!
+Data yang digunakan dalam proyek ini (`dosen.csv`, `mahasiswa.csv`, `jadwal.csv`, `matakuliah.csv`, `kampus.csv`, `jurusan.csv`, `prodi.csv`, `kelas_prodi.csv`, `matakuliah_prodi.csv`) adalah **data riil perkuliahan di Polban**. Namun, untuk menjaga privasi, **semua identitas pribadi seperti nama dosen dan mahasiswa telah disamarkan**. Jadi, jangan heran kalau menemukan nama-nama yang unik atau lucu, ya!
 
 ## 💻 Cara Menjalankan
 
