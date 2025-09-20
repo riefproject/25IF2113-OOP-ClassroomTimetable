@@ -31,3 +31,8 @@ all.*
 
 ### Local ###
 /misc/**/*
+Praktikum*.*
+all.txt
+CHANGE.md
+PENJELASAN.MD
+*.jar

@@ -1,21 +1,33 @@
 package id.ac.polban.app;
 
+import id.ac.polban.contract.Displayable;
 import id.ac.polban.model.*;
-import id.ac.polban.model.CourseType;
 import id.ac.polban.service.JadwalSearch;
 import id.ac.polban.service.Seed;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class MenuApp {
     private final Seed data;
     private final Scanner scanner;
+    private final Map<String, Consumer<String[]>> menuActions;
 
     public MenuApp(Seed data) {
         this.data = data;
         this.scanner = new Scanner(System.in);
+        this.menuActions = new HashMap<>();
+        initializeMenuActions();
+    }
+
+
+    private void initializeMenuActions() {
+        menuActions.put("1", this::navigateToMahasiswa);
+        menuActions.put("2", this::navigateToDosen);
+        menuActions.put("3", this::navigateToMataKuliah);
+        menuActions.put("4", this::navigateToJadwal);
     }
 
     public void run() {
@@ -50,288 +62,162 @@ public class MenuApp {
             System.out.println("Input tidak boleh kosong.");
             return;
         }
-
         String[] parts = input.split("\\s+");
         String command = parts[0];
         String[] args = Arrays.copyOfRange(parts, 1, parts.length);
-
-        switch (command) {
-            case "1":
-                navigateToMahasiswa(args);
-                break;
-            case "2":
-                navigateToDosen(args);
-                break;
-            case "3":
-                navigateToMataKuliah(args);
-                break;
-            case "4":
-                navigateToJadwal(args);
-                break;
-            default:
-                System.out.println("Pilihan menu tidak valid. Silakan coba lagi.");
-                break;
+        Consumer<String[]> action = menuActions.get(command);
+        if (action != null) {
+            action.accept(args);
+        } else {
+            System.out.println("Pilihan menu tidak valid. Silakan coba lagi.");
         }
     }
 
-    // ALUR NAVIGASI
+    // --- ALUR NAVIGASI ---
 
     private void navigateToMahasiswa(String[] args) {
-        // Pilih Jurusan
-        Jurusan jurusan = selectionPrompt(
-                "Jurusan",
-                data.getJurusan(),
-                Jurusan::getNama,
-                Jurusan::getAlias,
-                args, 0
-        );
+        Jurusan jurusan = selectionPrompt("Jurusan", data.getJurusan(), Jurusan::getName, Jurusan::getAlias, args, 0);
         if (jurusan == null) return;
-
-        // Pilih Program Studi
-        Prodi prodi = selectionPrompt(
-                "Program Studi",
-                jurusan.getDaftarProdi(),
-                p -> p.getJenjang() + " " + p.getNama(),
-                Prodi::getAlias,
-                args, 1
-        );
+        Prodi prodi = selectionPrompt("Program Studi", jurusan.getProdiList(), p -> p.getJenjang() + " " + p.getName(), Prodi::getAlias, args, 1);
         if (prodi == null) return;
-
-        // Pilih Kelas
-        Kelas kelas = selectionPrompt(
-                "Kelas",
-                prodi.getDaftarKelas(),
-                Kelas::getKodeKelas,
-                null,
-                args, 2
-        );
+        Kelas kelas = selectionPrompt("Kelas", prodi.getClassList(), Kelas::getCode, null, args, 2);
         if (kelas == null) return;
-
-        // Tampilkan data mahasiswa
-        printMahasiswa(kelas);
+        displayList("Daftar Mahasiswa Kelas " + kelas.getCode(), kelas.getMahasiswaList());
     }
 
     private void navigateToJadwal(String[] args) {
-        // Pilih Jurusan
-        Jurusan jurusan = selectionPrompt(
-                "Jurusan",
-                data.getJurusan(),
-                Jurusan::getNama,
-                Jurusan::getAlias,
-                args, 0
-        );
+        Jurusan jurusan = selectionPrompt("Jurusan", data.getJurusan(), Jurusan::getName, Jurusan::getAlias, args, 0);
         if (jurusan == null) return;
-
-        // Pilih Program Studi
-        Prodi prodi = selectionPrompt(
-                "Program Studi",
-                jurusan.getDaftarProdi(),
-                p -> p.getJenjang() + " " + p.getNama(),
-                Prodi::getAlias,
-                args, 1
-        );
+        Prodi prodi = selectionPrompt("Program Studi", jurusan.getProdiList(), p -> p.getJenjang() + " " + p.getName(), Prodi::getAlias, args, 1);
         if (prodi == null) return;
-
-        // Pilih Kelas
-        Kelas kelas = selectionPrompt(
-                "Kelas",
-                prodi.getDaftarKelas(),
-                Kelas::getKodeKelas,
-                null,
-                args, 2
-        );
+        Kelas kelas = selectionPrompt("Kelas", prodi.getClassList(), Kelas::getCode, null, args, 2);
         if (kelas == null) return;
-
-        // Tampilkan jadwal
-        JadwalSearch.searchByKelas(data, kelas.getKodeKelas(), "all");
-        waitForEnter();
+        
+        // REFACTOR: Panggil search, lalu hasilnya lempar ke displayList
+        List<Jadwal> jadwalList = JadwalSearch.searchByKelas(data, kelas.getCode(), "all");
+        displayList("Jadwal Kuliah Kelas " + kelas.getCode(), jadwalList);
     }
 
     private void navigateToDosen(String[] args) {
-        // Pilih Jurusan
-        Jurusan jurusan = selectionPrompt(
-                "Jurusan",
-                data.getJurusan(),
-                Jurusan::getNama,
-                Jurusan::getAlias,
-                args, 0
-        );
+        Jurusan jurusan = selectionPrompt("Jurusan", data.getJurusan(), Jurusan::getName, Jurusan::getAlias, args, 0);
         if (jurusan == null) return;
-
-        // Pilih Program Studi 
-        Prodi prodi = selectionPrompt(
-                "Program Studi",
-                jurusan.getDaftarProdi(),
-                p -> p.getJenjang() + " " + p.getNama(),
-                Prodi::getAlias,
-                args, 1
-        );
+        Prodi prodi = selectionPrompt("Program Studi", jurusan.getProdiList(), p -> p.getJenjang() + " " + p.getName(), Prodi::getAlias, args, 1);
         if (prodi == null) return;
-
-        // Tampilkan daftar dosen
         Set<Dosen> uniqueDosen = new HashSet<>();
-        prodi.getDaftarMataKuliah().forEach(mk -> uniqueDosen.addAll(mk.getPengampu()));
-        printDosen(new ArrayList<>(uniqueDosen));
+        prodi.getCourseList().forEach(mk -> uniqueDosen.addAll(mk.getPengampuList()));
+        displayList("Daftar Dosen Prodi " + prodi.getName(), new ArrayList<>(uniqueDosen));
     }
 
     private void navigateToMataKuliah(String[] args) {
-        // Pilih Jurusan
-        Jurusan jurusan = selectionPrompt(
-                "Jurusan",
-                data.getJurusan(),
-                Jurusan::getNama,
-                Jurusan::getAlias,
-                args, 0
-        );
+        Jurusan jurusan = selectionPrompt("Jurusan", data.getJurusan(), Jurusan::getName, Jurusan::getAlias, args, 0);
         if (jurusan == null) return;
-
-        // Pilih Program Studi
-        Prodi prodi = selectionPrompt(
-                "Program Studi",
-                jurusan.getDaftarProdi(),
-                p -> p.getJenjang() + " " + p.getNama(),
-                Prodi::getAlias,
-                args, 1
-        );
+        Prodi prodi = selectionPrompt("Program Studi", jurusan.getProdiList(), p -> p.getJenjang() + " " + p.getName(), Prodi::getAlias, args, 1);
         if (prodi == null) return;
-
-        // Tampilkan mata kuliah
         List<MataKuliah> filteredMataKuliah = data.getMataKuliah().stream()
-                .filter(mk -> mk.getTipeMataKuliah() == CourseType.UMUM || mk.getDaftarProdi().contains(prodi))
+                .filter(mk -> mk.getCourseType() == CourseType.UMUM || mk.getProdiList().contains(prodi))
                 .collect(Collectors.toList());
-        printMataKuliah(filteredMataKuliah, prodi);
+        displayList("Daftar Mata Kuliah Prodi " + prodi.getName(), filteredMataKuliah);
     }
 
+    // --- HELPER TAMPILAN & INPUT ---
 
-    // HELPER UNTUK PEMILIHAN MENU 
-
-    private <T> T selectionPrompt(String entityName, List<T> items, Function<T, String> nameExtractor, Function<T, String> aliasExtractor, String[] args, int argIndex) {
-        // Cek shorthand
-        if (argIndex < args.length) {
-            String shorthand = args[argIndex];
-            Optional<T> found = items.stream()
-                    .filter(item -> {
-                        boolean nameMatch = nameExtractor.apply(item).equalsIgnoreCase(shorthand);
-                        boolean aliasMatch = aliasExtractor != null && aliasExtractor.apply(item).equalsIgnoreCase(shorthand);
-                        return nameMatch || aliasMatch;
-                    })
-                    .findFirst();
-            if (found.isPresent()) {
-                return found.get();
-            }
-            System.out.printf("Shorthand '%s' untuk %s tidak ditemukan. Silakan pilih manual.%n", shorthand, entityName);
+    private <T extends Displayable> void displayList(String title, List<T> items) {
+        System.out.println("\n--- " + title + " ---");
+        if (items.isEmpty()) {
+            System.out.println("Tidak ada data yang tersedia.");
+            waitForEnter();
+            return;
         }
 
-        // Pemilihan manual
+        List<String> headers = items.get(0).getTableHeader();
+        List<List<String>> rows = items.stream().map(Displayable::getTableRowData).collect(Collectors.toList());
+        int numColumns = headers.size();
+
+        List<Integer> columnWidths = new ArrayList<>();
+        for (int i = 0; i < numColumns; i++) {
+            int maxWidth = headers.get(i).length();
+            for (List<String> row : rows) {
+                if (row.get(i).length() > maxWidth) {
+                    maxWidth = row.get(i).length();
+                }
+            }
+            columnWidths.add(maxWidth);
+        }
+
+        StringBuilder format = new StringBuilder("|");
+        for (Integer width : columnWidths) {
+            format.append(" %-").append(width).append("s |");
+        }
+        format.append("\n");
+
+        StringBuilder separator = new StringBuilder("+");
+        for (Integer width : columnWidths) {
+            separator.append("-".repeat(width + 2)).append("+");
+        }
+
+        System.out.println(separator);
+        System.out.printf(format.toString(), headers.toArray());
+        System.out.println(separator);
+        for (List<String> row : rows) {
+            System.out.printf(format.toString(), row.toArray());
+        }
+        System.out.println(separator);
+        System.out.println("Total: " + items.size() + " data.");
+
+        waitForEnter();
+    }
+
+    private <T> T selectionPrompt(String entityName, List<T> items, Function<T, String> nameExtractor, Function<T, String> aliasExtractor, String[] args, int argIndex) {
+        if (argIndex < args.length) {
+            Optional<T> found = findItemByNameOrAlias(args[argIndex], items, nameExtractor, aliasExtractor);
+            if (found.isPresent()) return found.get();
+            System.out.printf("Shorthand '%s' untuk %s tidak ditemukan. Pilih manual.%n", args[argIndex], entityName);
+        }
         while (true) {
-            System.out.printf("\n--- Pilih %s ---\n", entityName);
+            System.out.printf("%n--- Pilih %s ---%n", entityName);
             if (items.isEmpty()) {
                 System.out.printf("Tidak ada data %s yang tersedia.%n", entityName);
                 waitForEnter();
                 return null;
             }
-
             for (int i = 0; i < items.size(); i++) {
                 String name = nameExtractor.apply(items.get(i));
-                String alias = aliasExtractor != null ? " (" + aliasExtractor.apply(items.get(i)) + ")" : "";
+                String alias = (aliasExtractor != null && aliasExtractor.apply(items.get(i)) != null) ? " (" + aliasExtractor.apply(items.get(i)) + ")" : "";
                 System.out.printf("%d. %s%s%n", i + 1, name, alias);
             }
             System.out.println("0. Kembali");
             System.out.print("Pilih nomor atau ketik nama/alias: ");
-
             String input = scanner.nextLine().trim();
-            if (input.equalsIgnoreCase("0") || input.equalsIgnoreCase("kembali")) {
-                return null;
-            }
-
-            // Coba parsing nomor
-            try {
-                int choice = Integer.parseInt(input);
-                if (choice > 0 && choice <= items.size()) {
-                    return items.get(choice - 1);
-                }
-            } catch (NumberFormatException e) {
-                // Bukan nomor
-                String shorthand = input;
-                Optional<T> found = items.stream()
-                        .filter(item -> {
-                            boolean nameMatch = nameExtractor.apply(item).equalsIgnoreCase(shorthand);
-                            boolean aliasMatch = aliasExtractor != null && aliasExtractor.apply(item).equalsIgnoreCase(shorthand);
-                            return nameMatch || aliasMatch;
-                        })
-                        .findFirst();
-
-                if (found.isPresent()) {
-                    return found.get();
-                } else {
-                    System.out.printf("Input '%s' tidak dikenali sebagai nomor atau %s. Coba lagi.%n", shorthand, entityName);
-                }
+            if (input.equalsIgnoreCase("0") || input.equalsIgnoreCase("kembali")) return null;
+            Optional<T> found = findItemFromManualInput(input, items, nameExtractor, aliasExtractor);
+            if (found.isPresent()) {
+                return found.get();
+            } else {
+                System.out.printf("Input '%s' tidak dikenali. Coba lagi.%n", input);
             }
         }
     }
 
-    // FUNGSI TAMPILAN DATA
-
-    private void printMahasiswa(Kelas kelas) {
-        List<Mahasiswa> mahasiswaList = kelas.getDaftarMahasiswa();
-        System.out.printf("\n--- Daftar Mahasiswa Kelas %s ---\n", kelas.getKodeKelas());
-        if (mahasiswaList.isEmpty()) {
-            System.out.println("Tidak ada mahasiswa di kelas ini.");
-        } else {
-            System.out.println("-------------------------------------------------");
-            System.out.printf("| %-12s | %-30s |%n", "NIM", "Nama Mahasiswa");
-            System.out.println("-------------------------------------------------");
-            mahasiswaList.stream()
-                    .sorted(Comparator.comparing(Mahasiswa::getNim))
-                    .forEach(m -> System.out.printf("| %-12s | %-30s |%n", m.getNim(), m.getNama()));
-            System.out.println("-------------------------------------------------");
-            System.out.println("Total: " + mahasiswaList.size() + " mahasiswa.");
+    private <T> Optional<T> findItemFromManualInput(String input, List<T> items, Function<T, String> nameExtractor, Function<T, String> aliasExtractor) {
+        try {
+            int choice = Integer.parseInt(input);
+            if (choice > 0 && choice <= items.size()) {
+                return Optional.of(items.get(choice - 1));
+            }
+        } catch (NumberFormatException e) {
+            // Lanjut
         }
-        waitForEnter();
+        return findItemByNameOrAlias(input, items, nameExtractor, aliasExtractor);
     }
 
-    private void printDosen(List<Dosen> dosenList) {
-        System.out.printf("\n--- Daftar Dosen ---\n");
-        if (dosenList.isEmpty()) {
-            System.out.println("Tidak ada dosen yang mengajar mata kuliah di program studi ini.");
-        } else {
-            System.out.println("-------------------------------------------------");
-            System.out.printf("| %-15s | %-27s |%n", "NIP", "Nama Dosen");
-            System.out.println("-------------------------------------------------");
-            dosenList.stream()
-                    .sorted(Comparator.comparing(Dosen::getKodeDosen))
-                    .forEach(d -> System.out.printf("| %-15s | %-27s |%n", d.getKodeDosen(), d.getNama()));
-            System.out.println("-------------------------------------------------");
-            System.out.println("Total: " + dosenList.size() + " dosen.");
-        }
-        waitForEnter();
-    }
-
-    private void printMataKuliah(List<MataKuliah> mataKuliahList, Prodi selectedProdi) {
-        System.out.printf("\n--- Daftar Mata Kuliah untuk Program Studi %s %s ---\n", selectedProdi.getJenjang(), selectedProdi.getNama());
-        if (mataKuliahList.isEmpty()) {
-            System.out.println("Tidak ada mata kuliah yang terkait dengan program studi ini.");
-        } else {
-            System.out.println("-----------------------------------------------------------------------------------------------------------------");
-            System.out.printf("| %-10s | %-40s | %-5s | %-10s | %-25s |\n", "Kode", "Nama Mata Kuliah", "SKS", "Tipe", "Prodi Terkait");
-            System.out.println("-----------------------------------------------------------------------------------------------------------------");
-            mataKuliahList.stream()
-                    .sorted(Comparator.comparing(MataKuliah::getKode))
-                    .forEach(mk -> {
-                        String prodiTerikat = mk.getDaftarProdi().stream()
-                                .map(Prodi::getAlias)
-                                .collect(Collectors.joining(", "));
-                        if (mk.getTipeMataKuliah() == CourseType.UMUM) {
-                            prodiTerikat = "UMUM";
-                        } else if (prodiTerikat.isEmpty()) {
-                            prodiTerikat = "-";
-                        }
-                        System.out.printf("| %-10s | %-40s | %-5d | %-10s | %-25s |\n", mk.getKode(), mk.getNama(), mk.getSks(), mk.getTipeMataKuliah(), prodiTerikat);
-                    });
-            System.out.println("-----------------------------------------------------------------------------------------------------------------");
-            System.out.println("Total: " + mataKuliahList.size() + " mata kuliah.");
-        }
-        waitForEnter();
+    private <T> Optional<T> findItemByNameOrAlias(String input, List<T> items, Function<T, String> nameExtractor, Function<T, String> aliasExtractor) {
+        return items.stream()
+                .filter(item -> {
+                    boolean nameMatch = nameExtractor.apply(item).equalsIgnoreCase(input);
+                    boolean aliasMatch = aliasExtractor != null && aliasExtractor.apply(item) != null && aliasExtractor.apply(item).equalsIgnoreCase(input);
+                    return nameMatch || aliasMatch;
+                })
+                .findFirst();
     }
 
     private void waitForEnter() {

@@ -1,6 +1,6 @@
 package id.ac.polban.model;
 
-import java.util.Objects;
+import java.util.List;
 
 public class Mahasiswa extends Person {
     private Kelas kelas;
@@ -10,38 +10,54 @@ public class Mahasiswa extends Person {
         this.kelas = kelas;
     }
 
-    public String getNim() {
-        return getKode();
-    }
-    public String getNama() {
-        return super.getNama();
-    }
     public Kelas getKelas() {
         return kelas;
     }
 
-    public void setNama(String nama) {
-        super.setNama(Objects.requireNonNull(nama));
-    }
     public void setKelas(Kelas kelas) {
         this.kelas = kelas;
     }
-    
-    public boolean canActivate() {
-        return kelas != null && kelas.getIsActive();
+
+    // --- info lebih detail ---
+    @Override
+    public String getIdentity() {
+        String baseIdentity = super.getIdentity();
+        String extra = "";
+        if (kelas != null) extra += " | Kelas: " + kelas.getCode();
+        extra += " | Status: " + (isActive() ? "Aktif" : "Non-Aktif");
+        return baseIdentity + extra;
+    }
+
+    // --- Implementasi Displayable ---
+    @Override
+    public List<String> getTableHeader() {
+        return List.of("NIM", "Nama Mahasiswa", "Kelas", "Status");
     }
 
     @Override
-    public void setIsActive(boolean active) {
-        if (active && !canActivate()) {
-            throw new IllegalStateException("Mahasiswa " + getNim() + " tidak dapat diaktifkan karena Kelas tidak ada atau tidak aktif.");
+    public List<String> getTableRowData() {
+        return List.of(
+            getId(),
+            getName(),
+            (kelas != null ? kelas.getCode() : "-"),
+            (isActive() ? "Aktif" : "Non-Aktif")
+        );
+    }
+
+    // --- Implementasi Persistable ---
+    @Override
+    public String toPersistableFormat() {
+        String personData = super.toPersistableFormat();
+        String kelasId = (kelas != null) ? kelas.getCode() : "null";
+        return personData + "," + kelasId;
+    }
+
+    // --- Implementasi Activable ---
+    @Override
+    public void activate() {
+        // Mahasiswa bisa aktif jika kelasnya aktif
+        if (this.kelas != null && this.kelas.isActive()) {
+            this.isActive = true;
         }
-        super.setIsActive(active);
-    }
-
-    @Override
-    public String getIdentitas() {
-        String base = super.getIdentitas();
-        return kelas != null ? base + " | Kelas: " + kelas.getKodeKelas() : base;
     }
 }

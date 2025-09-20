@@ -4,9 +4,11 @@ rm -rf out
 mkdir out
 
 echo "[1/2] Mengkompilasi semua file .java..."
-javac -d out src/id/ac/polban/app/*.java src/id/ac/polban/model/*.java src/id/ac/polban/service/*.java
+# Perubahan: Menggunakan command substitution '$()' yang lebih standar
+# untuk memastikan semua file .java di bawah src terkompilasi.
+javac -d out $(find src -name "*.java")
 
-echo "[2/2] Membuat file JadwalLib.jar..."
+echo "[2/2] Membuat file ${JAR_NAME}.jar..."
 jar cf ${JAR_NAME}.jar -C out .
 
 echo ""

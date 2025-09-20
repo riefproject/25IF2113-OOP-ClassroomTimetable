@@ -10,62 +10,63 @@ public class Dosen extends Person {
     private final List<MataKuliah> mataKuliahDiampu = new ArrayList<>();
 
     public Dosen(String kodeDosen, String nama, String email) {
-        super(kodeDosen, nama); // penggunaan super di konstruktor
+        super(kodeDosen, nama);
         this.email = Objects.requireNonNull(email);
     }
 
-    // Getter & Setter (enkapsulasi)
-    public String getKodeDosen() {
-        return getKode();
-    }
-    public String getNama() {
-        return super.getNama();
-    }
-    public String getEmail() {
-        return email;
-    }
+    // --- Getters & Setters ---
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = Objects.requireNonNull(email); }
 
-    public void setkodeDosen(String kodeDosen) {
-        super.setKode(Objects.requireNonNull(kodeDosen));
-    }
-    public void setNama(String nama) {
-        super.setNama(Objects.requireNonNull(nama));
-    }
-    public void setEmail(String email) {
-        this.email = Objects.requireNonNull(email);
-    }
-
-    // Override contoh: menambahkan email pada identitas
-    @Override
-    public String getIdentitas() {
-        return super.getIdentitas() + " | " + email;
-    }
-
-    // Relasi many-to-many: expose as read-only
+    // --- Logika bisnis buat ngatur mata kuliah yg diampu ---
     public List<MataKuliah> getMataKuliahDiampu() {
         return Collections.unmodifiableList(mataKuliahDiampu);
     }
+
     public void ampu(MataKuliah mk) {
         if (mk != null && !mataKuliahDiampu.contains(mk)) {
             mataKuliahDiampu.add(mk);
-            mk.tambahPengampu(this); // sinkron sisi MK
+            mk.tambahPengampu(this);
         }
     }
+
     public void lepas(MataKuliah mk) {
         if (mk != null && mataKuliahDiampu.remove(mk)) {
             mk.hapusPengampu(this);
         }
     }
-    
-    public boolean canActivate() {
-        return mataKuliahDiampu.stream().anyMatch(MataKuliah::getIsActive);
+
+    // --- info lebih detail ---
+    @Override
+    public String getIdentity() {
+        return super.getIdentity() + " | " + email + " | Status: " + (isActive() ? "Aktif" : "Non-Aktif");
+    }
+
+    // --- Implementasi Displayable ---
+    @Override
+    public List<String> getTableHeader() {
+        return List.of("NIP", "Nama Dosen", "Email", "Status");
     }
 
     @Override
-    public void setIsActive(boolean active) {
-        if (active && !canActivate()) {
-            throw new IllegalStateException("Dosen " + getKodeDosen() + " tidak dapat diaktifkan karena tidak mengampu Mata Kuliah yang aktif.");
-        }
-        super.setIsActive(active);
+    public List<String> getTableRowData() {
+        return List.of(
+            getId(),
+            getName(),
+            this.email,
+            (isActive() ? "Aktif" : "Non-Aktif")
+        );
+    }
+
+    // --- Implementasi Persistable ---
+    @Override
+    public String toPersistableFormat() {
+        return super.toPersistableFormat() + "," + this.email;
+    }
+
+    // --- Implementasi Activable ---
+    @Override
+    public void activate() {
+        this.isActive = true;
     }
 }

@@ -1,58 +1,66 @@
 package id.ac.polban.model;
 
+import id.ac.polban.contract.Activable;
+import id.ac.polban.contract.Displayable;
+import id.ac.polban.contract.Persistable;
+
 import java.util.Objects;
 
 /**
- * Base class untuk entitas manusia (aktor) seperti Dosen dan Mahasiswa.
- * Dipisahkan dari entitas akademik non-manusia (MataKuliah, Jurusan, Prodi, Kampus)
- * agar relasi "is-a" lebih kuat dan masuk akal secara domain.
+ * Fondasi buat semua entitas orang di sistem ini.
+ * Dibuat abstract biar ga bisa sembarangan bikin object Person,
+ * kan aneh kalo ada "orang" tapi gajelas dia Dosen atau Mahasiswa.
  */
-public class Person {
-    private String kode; // dapat berperan sebagai NIM/NID atau kode unik lain
-    private String nama;
-    private boolean isActive = false; 
+public abstract class Person implements Displayable, Persistable, Activable {
+    private String id; // bisa NIM, bisa NIP. yang penting unik
+    private String name;
+    protected boolean isActive = false;
 
-    public Person(String kode, String nama) {
-        this.kode = Objects.requireNonNull(kode);
-        this.nama = Objects.requireNonNull(nama);
+    public Person(String id, String name) {
+        this.id = Objects.requireNonNull(id);
+        this.name = Objects.requireNonNull(name);
     }
 
-    public boolean getIsActive() {
-        return isActive;
-    }
+    // --- Getters & Setters ---
+    public String getId() { return id; }
+    public void setId(String id) { this.id = Objects.requireNonNull(id); }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = Objects.requireNonNull(name); }
 
-    public void setIsActive(boolean active) {
-        isActive = active;
-    }
+    public String getIdentity() { return id + " - " + name; }
 
-    public String getKode() { return kode; }
-    public String getNama() { return nama; }
+    // --- Implementasi Interface Activable ---
+    @Override
+    public abstract void activate();
 
-    public void setKode(String kode) { this.kode = Objects.requireNonNull(kode); }
-    public void setNama(String nama) { this.nama = Objects.requireNonNull(nama); }
-
-    /**
-     * Dapat dioverride oleh turunan untuk menambahkan informasi identitas.
-     */
-    public String getIdentitas() {
-        return kode + " - " + nama;
+    @Override
+    public void deactivate() {
+        this.isActive = false;
     }
 
     @Override
-    public String toString() {
-        return getIdentitas();
+    public boolean isActive() {
+        return this.isActive;
     }
+
+    // --- Implementasi Interface Persistable ---
+    @Override
+    public String toPersistableFormat() {
+        return id + "," + name;
+    }
+
+    // --- Override Method Bawaan Java ---
+    @Override
+    public String toString() { return getIdentity(); }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Person that = (Person) o;
-        return kode.equals(that.kode);
+        Person person = (Person) o;
+        return id.equals(person.id);
     }
 
     @Override
-    public int hashCode() {
-        return kode.hashCode();
-    }
+    public int hashCode() { return id.hashCode(); }
 }

@@ -3,78 +3,110 @@ package id.ac.polban.model;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 public class Prodi extends AkademikEntity {
     private Jurusan jurusan;
-    private String alias;   // singkatan/alias, mis. "TI"
-    private String jenjang; // mis. "D3", "D4", "S2"
-    private final List<Kelas> daftarKelas = new ArrayList<>();
-    private final List<MataKuliah> daftarMataKuliah = new ArrayList<>();
+    private String alias;
+    private String jenjang;
+    private final List<Kelas> classList = new ArrayList<>();
+    private final List<MataKuliah> courseList = new ArrayList<>();
 
-    public Prodi(String kode, String nama) {
-        super(kode, nama);
+    public Prodi(String code, String name) {
+        super(code, name);
     }
-    public Prodi(String kode, String nama, String alias, String jenjang) {
-        super(kode, nama);
+
+    public Prodi(String code, String name, String alias, String jenjang) {
+        super(code, name);
         this.alias = alias;
         this.jenjang = jenjang;
     }
 
+    // --- Getters & Setters ---
     public Jurusan getJurusan() { return jurusan; }
     void setJurusan(Jurusan jurusan) { this.jurusan = jurusan; }
-
     public String getAlias() { return alias; }
     public void setAlias(String alias) { this.alias = alias; }
-
     public String getJenjang() { return jenjang; }
     public void setJenjang(String jenjang) { this.jenjang = jenjang; }
 
-    public List<Kelas> getDaftarKelas() { return Collections.unmodifiableList(daftarKelas); }
-    public void tambahKelas(Kelas k) {
-        if (k != null && !daftarKelas.contains(k)) {
-            daftarKelas.add(k);
-            if (k.getProdi() != this) k.setProdi(this);
+    // --- Logika Bisnis ---
+    public List<Kelas> getClassList() { return Collections.unmodifiableList(classList); }
+    public void addKelas(Kelas kelas) {
+        if (kelas != null && !classList.contains(kelas)) {
+            classList.add(kelas);
+            if (kelas.getProdi() != this) kelas.setProdi(this);
         }
     }
-    public void hapusKelas(Kelas k) {
-        if (k != null && daftarKelas.remove(k)) {
-            if (k.getProdi() == this) k.setProdi(null);
+    public void removeKelas(Kelas kelas) {
+        if (kelas != null && classList.remove(kelas)) {
+            if (kelas.getProdi() == this) kelas.setProdi(null);
+        }
+    }
+    public List<MataKuliah> getCourseList() { return Collections.unmodifiableList(courseList); }
+    public void addMataKuliah(MataKuliah mk) {
+        if (mk != null && mk.getCourseType() == CourseType.PRODI_SPECIFIC && !courseList.contains(mk)) {
+            courseList.add(mk);
+            mk.addProdi(this);
+        }
+    }
+    public void removeMataKuliah(MataKuliah mk) {
+        if (mk != null && courseList.remove(mk)) {
+            mk.removeProdi(this);
         }
     }
 
-    public List<MataKuliah> getDaftarMataKuliah() { return Collections.unmodifiableList(daftarMataKuliah); }
-    public void tambahMataKuliah(MataKuliah mk) {
-        if (mk != null && mk.getTipeMataKuliah() == CourseType.PRODI_SPECIFIC && !daftarMataKuliah.contains(mk)) {
-            daftarMataKuliah.add(mk);
-            mk.tambahProdi(this);
-        }
-    }
-    public void hapusMataKuliah(MataKuliah mk) {
-        if (mk != null && daftarMataKuliah.remove(mk)) {
-            mk.hapusProdi(this);
-        }
-    }
-    
-    public boolean canActivate() {
-        return jurusan.getIsActive() && daftarKelas.stream().anyMatch(Kelas::getIsActive);
-    }
-
+    // --- Info Lebih Detail ---
     @Override
-    public void setIsActive(boolean active) {
-        if (active && !canActivate()) {
-            throw new IllegalStateException("Prodi " + getKode() + " tidak dapat diaktifkan karena Jurusan tidak aktif atau tidak memiliki Kelas yang aktif.");
-        }
-        super.setIsActive(active);
-    }
-
-    @Override
-    public String getIdentitas() {
-        String base = super.getIdentitas();
+    public String getIdentity() {
+        String base = super.getIdentity();
         String extra = "";
         if (alias != null && !alias.isEmpty()) extra += " | Alias: " + alias;
         if (jenjang != null && !jenjang.isEmpty()) extra += " | Jenjang: " + jenjang;
-        if (jurusan != null) extra += " | Jurusan: " + jurusan.getNama();
+        if (jurusan != null) extra += " | Jurusan: " + jurusan.getName();
+        extra += " | Status: " + (isActive() ? "Aktif" : "Non-Aktif");
         return base + extra;
+    }
+
+    // --- Implementasi Displayable ---
+    @Override
+    public List<String> getTableHeader() {
+        return List.of("Kode Prodi", "Nama Prodi", "Jenjang", "Jurusan", "Status");
+    }
+
+    @Override
+    public List<String> getTableRowData() {
+        return List.of(
+            getCode(),
+            getName(),
+            (jenjang != null ? jenjang : "-"),
+            (jurusan != null ? jurusan.getName() : "-"),
+            (isActive() ? "Aktif" : "Non-Aktif")
+        );
+    }
+
+    // --- Implementasi Persistable ---
+    @Override
+    public String toPersistableFormat() {
+        String base = super.toPersistableFormat();
+        String jurusanCode = (jurusan != null) ? jurusan.getCode() : "null";
+        return base + "," + alias + "," + jenjang + "," + jurusanCode;
+    }
+
+    // --- Implementasi Activable ---
+    @Override
+    public void activate() {
+        // Prodi bisa aktif jika jurusannya aktif dan memiliki minimal 1 kelas
+        if (this.jurusan != null && this.jurusan.isActive() && !this.classList.isEmpty()) {
+            this.isActive = true;
+        }
+    }
+
+    @Override
+    public void deactivate() {
+        super.deactivate();
+        // Jika prodi dinonaktifkan, semua kelas di bawahnya juga ikut non-aktif
+        for (Kelas kelas : classList) {
+            kelas.deactivate();
+        }
     }
 }

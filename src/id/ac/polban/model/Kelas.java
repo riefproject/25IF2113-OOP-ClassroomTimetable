@@ -7,58 +7,85 @@ import java.util.Objects;
 
 public class Kelas extends AkademikEntity {
     private Prodi prodi;
-    private final List<Mahasiswa> daftarMahasiswa = new ArrayList<>();
-    private final List<Jadwal> daftarJadwal = new ArrayList<>();
+    private final List<Mahasiswa> mahasiswaList = new ArrayList<>();
+    private final List<Jadwal> jadwalList = new ArrayList<>();
 
-    public Kelas(String kodeKelas, Prodi prodi) {
-        super(kodeKelas, "Kelas " + kodeKelas);
+    public Kelas(String classCode, Prodi prodi) {
+        super(classCode, "Kelas " + classCode);
         this.prodi = Objects.requireNonNull(prodi);
     }
 
-    public String getKodeKelas() {
-        return getKode();
-    }
-
-    public void setKodeKelas(String kodeKelas) {
-        super.setKode(Objects.requireNonNull(kodeKelas));
-    }
-
-    // Relasi ke Prodi
+    // --- Getters & Setters ---
     public Prodi getProdi() { return prodi; }
     public void setProdi(Prodi prodi) { this.prodi = Objects.requireNonNull(prodi); }
 
-    public List<Mahasiswa> getDaftarMahasiswa() {
-        return Collections.unmodifiableList(daftarMahasiswa);
-    }
-    public void tambahMahasiswa(Mahasiswa m) {
-        if (m != null && !daftarMahasiswa.contains(m)) {
-            daftarMahasiswa.add(m);
-            if (m.getKelas() != this) m.setKelas(this);
+    // --- Logika Bisnis ---
+    public List<Mahasiswa> getMahasiswaList() { return Collections.unmodifiableList(mahasiswaList); }
+    public void addMahasiswa(Mahasiswa mahasiswa) {
+        if (mahasiswa != null && !mahasiswaList.contains(mahasiswa)) {
+            mahasiswaList.add(mahasiswa);
+            if (mahasiswa.getKelas() != this) mahasiswa.setKelas(this);
         }
     }
-    public void hapusMahasiswa(Mahasiswa m) {
-        if (daftarMahasiswa.remove(m) && m.getKelas() == this) {
-            m.setKelas(null);
+    public void removeMahasiswa(Mahasiswa mahasiswa) {
+        if (mahasiswaList.remove(mahasiswa) && mahasiswa.getKelas() == this) {
+            mahasiswa.setKelas(null);
         }
     }
+    public List<Jadwal> getJadwalList() { return Collections.unmodifiableList(jadwalList); }
+    void addJadwal(Jadwal jadwal) { if (jadwal != null && !jadwalList.contains(jadwal)) jadwalList.add(jadwal); }
+    void removeJadwal(Jadwal jadwal) { jadwalList.remove(jadwal); }
 
-    public List<Jadwal> getDaftarJadwal() {
-        return Collections.unmodifiableList(daftarJadwal);
+    // --- Info Lebih Detail ---
+    @Override
+    public String getIdentity() {
+        String base = super.getIdentity();
+        String extra = "";
+        if (prodi != null) extra += " | Prodi: " + prodi.getName();
+        extra += " | Jumlah Mahasiswa: " + mahasiswaList.size();
+        extra += " | Status: " + (isActive() ? "Aktif" : "Non-Aktif");
+        return base + extra;
     }
-    void tambahJadwal(Jadwal j) {
-        if (j != null && !daftarJadwal.contains(j)) daftarJadwal.add(j);
-    }
-    void hapusJadwal(Jadwal j) { daftarJadwal.remove(j); }
 
-    public boolean canActivate() {
-        return prodi.getIsActive() && daftarMahasiswa.stream().anyMatch(Mahasiswa::getIsActive);
+    // --- Implementasi Displayable ---
+    @Override
+    public List<String> getTableHeader() {
+        return List.of("Kode Kelas", "Program Studi", "Jumlah Mahasiswa", "Status");
     }
 
     @Override
-    public void setIsActive(boolean active) {
-        if (active && !canActivate()) {
-            throw new IllegalStateException("Kelas " + getKode() + " tidak dapat diaktifkan karena Prodi tidak aktif atau tidak memiliki Mahasiswa yang aktif.");
+    public List<String> getTableRowData() {
+        return List.of(
+            getCode(),
+            (prodi != null ? prodi.getName() : "-"),
+            String.valueOf(mahasiswaList.size()),
+            (isActive() ? "Aktif" : "Non-Aktif")
+        );
+    }
+
+    // --- Implementasi Persistable ---
+    @Override
+    public String toPersistableFormat() {
+        String base = super.toPersistableFormat();
+        String prodiCode = (prodi != null) ? prodi.getCode() : "null";
+        return base + "," + prodiCode;
+    }
+
+    // --- Implementasi Activable ---
+    @Override
+    public void activate() {
+        // Kelas bisa aktif jika prodinya aktif
+        if (this.prodi != null && this.prodi.isActive()) {
+            this.isActive = true;
         }
-        super.setIsActive(active);
+    }
+
+    @Override
+    public void deactivate() {
+        super.deactivate();
+        // Jika kelas dinonaktifkan, semua mahasiswa di dalamnya juga ikut non-aktif
+        for (Mahasiswa mahasiswa : mahasiswaList) {
+            mahasiswa.deactivate();
+        }
     }
 }
