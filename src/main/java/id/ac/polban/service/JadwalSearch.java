@@ -14,10 +14,6 @@ import java.util.stream.Collectors;
 public final class JadwalSearch {
     private JadwalSearch() {}
 
-    /**
-     * REFACTOR: Method ini sekarang MENGEMBALIKAN list jadwal, bukan mencetak.
-     * Ini memisahkan logika pencarian data dari logika presentasi.
-     */
     public static List<Jadwal> searchByKelas(Seed seed, String kodeKelas, String hariArg) {
         Optional<Kelas> opt = seed.getKelas().stream()
                 .filter(k -> k.getCode().equalsIgnoreCase(kodeKelas))

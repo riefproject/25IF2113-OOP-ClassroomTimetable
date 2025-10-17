@@ -93,7 +93,7 @@ public class MenuApp {
         Kelas kelas = selectionPrompt("Kelas", prodi.getClassList(), Kelas::getCode, null, args, 2);
         if (kelas == null) return;
         
-        // REFACTOR: Panggil search, lalu hasilnya lempar ke displayList
+        // Panggil search, lalu hasilnya lempar ke displayList
         List<Jadwal> jadwalList = JadwalSearch.searchByKelas(data, kelas.getCode(), "all");
         displayList("Jadwal Kuliah Kelas " + kelas.getCode(), jadwalList);
     }
